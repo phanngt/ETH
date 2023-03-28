@@ -10,10 +10,14 @@ SCROLL_BLOCK_EXPLORER = "https://blockscout.scroll.io"
 # Connect to rpc and chain id
 w3 = Web3(Web3.HTTPProvider(SCROLL_RPC))
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-LAYER_1_BASE_FEE = 0.001
+
+LAYER_1_BASE_FEE = 0.001  # Estimate the base fee for layer 1 transactions
 
 
 def transfer_all(sender: LocalAccount, receiver: LocalAccount):
+    """
+    Transfer all the balance from sender to receiver
+    """
     # Build the transaction
     transaction = {
         'from': sender.address,
@@ -30,17 +34,16 @@ def transfer_all(sender: LocalAccount, receiver: LocalAccount):
     max_value = w3.eth.get_balance(sender.address) - (estimated_gas * w3.eth.gas_price) - w3.to_wei(LAYER_1_BASE_FEE,
                                                                                                     'ether')
     transaction['value'] = max_value
-
+    eth_amount = w3.from_wei(max_value, 'ether')
+    print(f"Transfer all balance from {sender.address} to {receiver.address} amount {eth_amount} ETH")
     # Sign the transaction
     signed_transaction = w3.eth.account.sign_transaction(transaction, sender.key)
     # Send the transaction
     transaction_hash = w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
     # Wait for the transaction to be mined
     transaction_receipt = w3.eth.wait_for_transaction_receipt(transaction_hash)
-    # Print the transaction hash and block number
-    print(f"Transaction hash: {transaction_hash.hex()}")
-    print(f"Block number: {transaction_receipt['blockNumber']}")
-    # Wait for the block confirmation
+    # Block Explorer
+    print(f"Block Explorer: {SCROLL_BLOCK_EXPLORER}/tx/{transaction_hash.hex()}")
     while True:
         print(f"Waiting for the block confirmation...")
         time.sleep(1)
@@ -49,7 +52,7 @@ def transfer_all(sender: LocalAccount, receiver: LocalAccount):
         if latest_block - tx_block >= 1:
             break
     print(f"Transaction confirmed on block {latest_block} between {sender.address} and {receiver.address} amount"
-          f" {w3.from_wei(max_value, 'ether')} ETH")
+          f" {eth_amount} ETH")
 
 
 def transfer_between_accounts():
@@ -60,6 +63,8 @@ def transfer_between_accounts():
     # Transfer order by order from the first account to the last account
     for i in range(len(accounts) - 1):
         transfer_all(accounts[i], accounts[i + 1])
+    # Transfer back from the last account to the first account
+    transfer_all(accounts[-1], accounts[0])
 
 
 transfer_between_accounts()
