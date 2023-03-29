@@ -53,6 +53,3 @@ def transfer_between_accounts():
         transfer_all(accounts[i], accounts[i + 1])
     # Transfer back from the last account to the first account
     transfer_all(accounts[-1], accounts[0])
-
-
-transfer_between_accounts()
