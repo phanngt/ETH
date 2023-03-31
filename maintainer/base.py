@@ -8,6 +8,9 @@ from maintainer.scroll_test_net import *
 
 
 class BaseWeb3:
+    """
+    Testing for Scroll Testnet, will be changed to other testnet such as: Taiko, Linea, v.v...
+    """
     def __init__(self, rpc: str = SCROLL_RPC, block_explorer: str = SCROLL_BLOCK_EXPLORER,
                  chain_id: str = SCROLL_CHAIN_ID):
         self.chain_id = chain_id
